@@ -1,122 +1,67 @@
 const express = require('express');
+const ProductsService = require('../services/productService');
+
 const router = express.Router();
-const productsService = require('./../services/productService')
-const product = new productsService();
+const service = new ProductsService();
 
-router.get('/', (req, res) => {
-  // const products = [];
-  // const {size} = req.query;
-  // const limit = size || 10;
+// GET all products
+router.get('/', getAll);
 
-  // for (let index = 0; index < limit; index++) {
-  //   products.push({
-  //     name: faker.commerce.productName(),
-  //     price: parseInt(faker.commerce.price(), 10),
-  //     image: faker.image.imageUrl(),
-  //   })
-  // }
-  let {limit, offset} = req.query;
-  res.json(product.find({limit, offset}));
-});
+// GET product by ID
+router.get('/:id', getOne);
+
+// ADD new product
+router.post('/', create);
+
+// UPDATE partial product
+router.patch('/:id', updateProduct);
+
+// DELETE product
+router.delete('/:id', deleteProduct)
 
 
-router.get('/filter', (req, res) => {
-  res.send('Yo soy un filtro');
-});
+// Internal functions
+async function getAll(req, res) {
+  const products = await service.find();
+  res.json(products);
+}
 
 
-router.get('/:id', (req, res) => {
+async function getOne(req, res) {
   const {id} = req.params;
+  const product = await service.findOne(id);
+  res.json(product);
+}
 
-  // if (id === '999') {
-  //   res.status(404).json({
-  //     message: 'NOT FOUND'
-  //   })
-  // } else {
-  //   res.status(200).json({
-  //     id,
-  //     name: 'Product 2',
-  //     price: 2000
-  //   })
 
-  // }
-  const obj = product.findOne(id);
+async function create(req, res) {
+  const body = req.body;
+  const newProduct = await service.create(body);
+  res.status(201).json(newProduct);
+}
 
-  if (obj) {
-    res.status(200).json(obj);
 
-  } else {
+async function updateProduct(req, res) {
+  try {
+    const {id} = req.params;
+    const body = req.body;
+    const product = await service.update(id, body);
+    res.json(product);
+
+  } catch (error) {
     res.status(404).json({
-      message: 'Product not found'
-    });
-  }
-})
-
-
-router.post('/', (req, res) => {
-  // const body = req.body;
-  const {name, price, image} = req.body;
-
-  const newProduct = product.create({name, price, image});
-
-  if (newProduct) {
-    res.status(201).json({
-      message: 'Product added',
-      data: newProduct
+      message: error.message
     });
 
-  } else {
-    res.status(501).json({
-      message: 'Internal error'
-    })
   }
+}
 
-});
 
-
-router.patch('/:id', (req, res) => {
+async function deleteProduct(req, res) {
   const {id} = req.params;
-  // const body = req.body;
-  // const id = parseInt(req.params.id);
-  const {name, price, image} = req.body;
-
-  const updateProduct = product.update(id, {name, price, image});
-
-  if (updateProduct) {
-    res.json({
-      message: 'Product updated',
-      data: req.body
-    })
-
-  } else {
-    res.status(501).json({
-      message: 'Internal error'
-    });
-
-  }
-
-});
-
-
-router.delete('/:id', (req, res) => {
-  const {id} = req.params;
-
-  const currentProduct = product.delete(id);
-
-  if (currentProduct) {
-    res.status(201).json({
-      message: 'Product deleted',
-      data: currentProduct
-    });
-
-  } else {
-    res.status(404).json({
-      message: 'Product not found'
-    })
-  }
-
-});
-
+  const rta = await service.delete(id);
+  res.json(rta)
+}
 
 
 module.exports = router;

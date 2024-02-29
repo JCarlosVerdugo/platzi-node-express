@@ -7,6 +7,7 @@ class ProductsService {
     this.generate();
   }
 
+
   generate() {
     const limit = 100;
     for (let index = 0; index < limit; index++) {
@@ -15,68 +16,65 @@ class ProductsService {
         name: faker.commerce.productName(),
         price: parseInt(faker.commerce.price(), 10),
         image: faker.image.imageUrl()
-      })
+      });
     }
   }
 
-
-  create(product = {}) {
+  async create(data) {
     const newProduct = {
       id: faker.string.uuid(),
-      name: product.name,
-      price: parseInt(product.price),
-      image: product.image
-    }
+      ...data
+    };
 
     this.products.push(newProduct);
-
     return newProduct;
   }
 
 
-  find(filter = {}) {
-    return this.products.slice(
-      filter.offset | 0,
-      filter.limit ? parseInt(filter.limit) + parseInt((filter.offset | 0))
-    : undefined)
+  find() {
+    // return new Promise((res, rej) => {
+    //   setTimeout(() => {
+    //     res(this.products)
+    //   }, 2000);
+    // });
+    return this.products;
   }
 
 
-  findOne(id) {
+  async findOne(id) {
     return this.products.find(item => item.id === id);
   }
 
 
-  update(id, changes = {}) {
-    const product = this.products.find((obj) => obj.id === id);
-    const index = this.products.findIndex((obj) => obj.id === id);
+  async update(id, changes) {
+    const index = this.products.findIndex(item => item.id === id);
 
-    if (product) {
-      this.products[index] = {
-        id: product.id,
-        name: changes.name || product.name,
-        price: changes.price || product.price,
-        image: changes.image || product.image
-      };
-
-      return product;
+    if (index === -1) {
+      throw new Error('process not found');
     }
 
-  }
+    const product = this.products[index];
 
-
-  delete(id) {
-    const product = {
-      ...this.products.find((prod) => prod)
+    this.products[index] = {
+      ...product,
+      changes
     };
 
-    if (product) {
-      this.products = this.products.filter((p) => p.id !== id);
-      return product;
-    }
-
+    return this.products[index]
   }
 
+
+  async delete(id) {
+    const index = this.products.findIndex(item => item.id === id);
+
+    if (index === -1) {
+      throw new Error('product not found');
+    }
+
+    this.products.splice(index, 1);
+
+    return {id};
+  }
 }
 
 module.exports =  ProductsService;
