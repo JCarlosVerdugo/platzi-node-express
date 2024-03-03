@@ -27,10 +27,15 @@ async function getAll(req, res) {
 }
 
 
-async function getOne(req, res) {
-  const {id} = req.params;
-  const product = await service.findOne(id);
-  res.json(product);
+async function getOne(req, res, next) {
+  try {
+    const {id} = req.params;
+    const product = await service.findOne(id);
+    res.json(product);
+
+  } catch (error) {
+    next(error);
+  }
 }
 
 
@@ -41,7 +46,7 @@ async function create(req, res) {
 }
 
 
-async function updateProduct(req, res) {
+async function updateProduct(req, res, next) {
   try {
     const {id} = req.params;
     const body = req.body;
@@ -49,9 +54,10 @@ async function updateProduct(req, res) {
     res.json(product);
 
   } catch (error) {
-    res.status(404).json({
-      message: error.message
-    });
+    next(error);
+    // res.status(404).json({
+    //   message: error.message
+    // });
 
   }
 }
