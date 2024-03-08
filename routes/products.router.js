@@ -1,5 +1,7 @@
 const express = require('express');
 const ProductsService = require('../services/productService');
+const validatorHandler = require('./../middlewares/validator.handler');
+const {createProductSchema, updateProductSchema, getProductsSchema} = require('./../schemas/products.schema');
 
 const router = express.Router();
 const service = new ProductsService();
@@ -8,13 +10,23 @@ const service = new ProductsService();
 router.get('/', getAll);
 
 // GET product by ID
-router.get('/:id', getOne);
+router.get('/:id',
+  validatorHandler(getProductsSchema, 'params'),
+  getOne
+);
 
 // ADD new product
-router.post('/', create);
+router.post('/',
+  validatorHandler(createProductSchema, 'body'),
+  create
+);
 
 // UPDATE partial product
-router.patch('/:id', updateProduct);
+router.patch('/:id',
+  validatorHandler(getProductsSchema, 'params'),
+  validatorHandler(updateProductSchema, 'query'),
+  updateProduct
+);
 
 // DELETE product
 router.delete('/:id', deleteProduct)
@@ -55,10 +67,6 @@ async function updateProduct(req, res, next) {
 
   } catch (error) {
     next(error);
-    // res.status(404).json({
-    //   message: error.message
-    // });
-
   }
 }
 
